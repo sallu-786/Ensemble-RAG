@@ -74,12 +74,12 @@ def ensemble_retriever(text_chunks, query):
   
     docs = [DocumentChunk(page_content=chunk['text'], metadata={'page': chunk['page_number']})
                 for chunk in text_chunks]
-    bm25_retriever = BM25Retriever.from_documents(docs)
+    bm25_retriever = BM25Retriever.from_documents(docs,search_kwargs={"k": 3})
     embeddings = AzureOpenAIEmbeddings(azure_deployment=model, openai_api_version="2023-05-15")
     documents = [DocumentChunk(page_content=chunk['text'], metadata={'page': chunk['page_number']}) 
                  for chunk in text_chunks]
     vector_store = FAISS.from_documents(documents, embeddings)
-    faiss_retriever = vector_store.as_retriever()
+    faiss_retriever = vector_store.as_retriever(search_kwargs={"k": 3})
     ensemble_retriever = EnsembleRetriever(
     retrievers=[bm25_retriever, faiss_retriever], weights=[0.25, 0.75])
     final_result = ensemble_retriever.invoke(query)
